@@ -32,19 +32,7 @@ async function getCoverageFilesForBuilds(builds: Build[]): Promise<any[]> {
     if (build_page === undefined) {
       continue
     }
-    const $ = cheerio.load(build_page)
-    $('.missed-lines:last').find('tr').get().map((row, index) => {
-    // Table doesn't have a thead element so it will be the first row
-      if (index) {
-        coverage_files.push({
-          lines_uncovered: parseInt($(row).find('td:nth-child(1)').text().replace(/\n/g, "")),
-          coverage: parseFloat($(row).find('td:nth-child(2)').text().replace(/\n/g, "")),
-          delta: parseFloat($(row).find('td:nth-child(3)').text().replace(/\n/g, "")),
-          file: $(row).find('td:nth-child(4)').text().replace(/\n/g, ""),
-          build_ref: build.commit_sha
-        })
-      }
-    })
+    coverage_files.push(...scrapeUncoveredFiles(build_page, build.commit_sha))
   }
 
   return coverage_files
