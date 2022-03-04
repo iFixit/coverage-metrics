@@ -1,0 +1,10 @@
+{
+  "extends": "@tsconfig/node14/tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "removeComments": true, /* Remove comments */
+    "sourceMap": true,
+    "outDir": "dist",
+    "noImplicitAny": false
+  },
+}

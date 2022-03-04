@@ -1,0 +1,48 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator dbml {
+  provider            = "prisma-dbml-generator"
+  projectName         = "CoverageMetrics"
+  projectDatabaseType = "MySQL"
+  projectNote         = "Database for housing metrics on Coverage"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Build {
+  created_at      String  @db.VarChar(255)
+  url             String? @db.VarChar(255)
+  commit_message  String  @db.VarChar(255)
+  branch          String  @db.VarChar(255)
+  committer_name  String  @db.VarChar(255)
+  committer_email String  @db.VarChar(255)
+  commit_sha      String  @id @db.VarChar(255)
+  repo_name       String  @db.VarChar(255)
+  badge_url       String  @db.VarChar(255)
+  coverage_change Float
+  covered_percent Float
+
+  UncoveredLines UncoveredLines[]
+  @@map("builds")
+}
+
+model UncoveredLines {
+  id              Int    @id @default(autoincrement())
+  lines_uncovered Int
+  coverage        Float
+  delta           Float
+  file            String @db.VarChar(255)
+  build_ref       String @db.VarChar(255)
+  build           Build  @relation(fields: [build_ref], references: [commit_sha])
+
+  @@unique([build_ref, file])
+  @@map("unconvered_lines")
+}
