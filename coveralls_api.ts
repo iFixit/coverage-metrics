@@ -1,4 +1,4 @@
-import { CoverallsBuild } from "./types"
+import { CoverallsBuild, CoverallsFileCoverage } from "./types"
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import dotenv from "dotenv";
 
@@ -51,11 +51,43 @@ export default class CoverallsAPIClient {
     return this.instance.get(`builds/${commit_sha}`, { params: { repo_token: process.env.COVERALLS_REPO_TOKEN } })
   }
 
+  public async getFileCoverage(commit_sha: string, file_path: string) {
+    return this.instance.get(`builds/${commit_sha}/source`,{ params: { repo_token: process.env.COVERALLS_REPO_TOKEN, filename: file_path} })
+  }
+
+  // We can probably atttach a webhook later to automatically retrieve the latest build for master
+  public async getFirstMasterBuild() {
+    for (let current_page = 1; ; current_page++) {
+      const response = await this.getBuildsFromPage(current_page)
+      const master_build = response.builds.find(build => build.branch === 'master')
+      if (master_build) {
+        return master_build
+      }
+    }
+  }
+
+  public async getAllSourceFilesCoverage(commit_sha: string): Promise<CoverallsFileCoverage[]> {
+    let source_file_coverage = []
+    const response = await this.getSourceFilesCoverageAtPage(commit_sha,1)
+    source_file_coverage = source_file_coverage.concat(JSON.parse(response.source_files))
+    const total_pages = response.total_pages
+
+    for (let current_page = 2; current_page <= total_pages; current_page++){
+      const response = await this.getSourceFilesCoverageAtPage(commit_sha,current_page)
+      source_file_coverage = source_file_coverage.concat(JSON.parse(response.source_files))
+    }
+    return source_file_coverage
+  }
+
   private filterNonMasterBuilds(builds: CoverallsBuild[]) {
     return builds.filter(build => {
       if (build.branch !== 'master') {
         return build
     }
     })
+  }
+
+  private getSourceFilesCoverageAtPage(commit_sha: string, page: number) {
+     return this.instance.get(`builds/${commit_sha}/source_files.json`,{ params: { repo_token: process.env.COVERALLS_REPO_TOKEN, page: page} })
   }
 }

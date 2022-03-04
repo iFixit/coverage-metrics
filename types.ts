@@ -11,3 +11,11 @@ export type CoverallsBuild = {
   coverage_change: number
   covered_percent: number
 }
+
+export type CoverallsFileCoverage = {
+  name: string,
+  relevant_line_count: number,
+  covered_line_count: number,
+  missed_line_count: number,
+  covered_percent: number
+}
