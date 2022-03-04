@@ -1,3 +1,4 @@
+import { LineCoverage } from "@prisma/client";
 import cheerio from "cheerio";
 
 
@@ -20,6 +21,25 @@ export function scrapeUncoveredFiles(build_page: string,build_commit_sha:string)
   return coverage_files;
 }
 
-export function scrapeUncoveredLines(file_page: string) {
-  
+export function scrapeUncoveredLines(file_page: string,file: string): LineCoverage[] {
+  const $ = cheerio.load(file_page)
+  const coverage_lines: any[] = [];
+  $('.line-uncov').get().map(line => {
+    coverage_lines.push({
+      line_number: parseInt($(line).siblings('a:first').text()),
+      line_text: $(line).parent('.num').siblings('td.src').find('pre').text().trim(),
+      times_uncovered: 1,
+      file_ref: file
+    })
+  })
+
+  return coverage_lines
 }
+
+// Get the Line Number for the coverage
+//  $('.line-uncov').get().map(line => {
+//     console.log($(line).siblings('a:first').text())
+//   })
+
+// Get the line code for the coverage
+// console.log($(line).parent('.num').siblings('td.src').find('pre').text().trimStart())

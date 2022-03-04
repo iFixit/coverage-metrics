@@ -3,8 +3,6 @@ import CoverallsAPIClient from "./coveralls_api"
 import { CoverallsFileCoverage } from "./types";
 import db from "./prisma/dbClient"
 
-import fs from "fs"
-
 const coveralls = new CoverallsAPIClient();
 
 async function populateFileCoverage(){
@@ -12,9 +10,7 @@ async function populateFileCoverage(){
   const source_file_coverage: CoverallsFileCoverage[] = await coveralls.getAllSourceFilesCoverage(master_build.commit_sha)
 
   const mapped_file_coverage = parseFileCoverage(source_file_coverage)
-  const sorted_file_coverage = sortFileCoverage(mapped_file_coverage)
 
-  fs.writeFileSync('./files.json',JSON.stringify(sorted_file_coverage))
   const BATCH_SIZE: number = 200
   for (let batch = 0; batch <= mapped_file_coverage.length; batch += BATCH_SIZE) {
     await db.fileCoverage.createMany({
@@ -22,6 +18,8 @@ async function populateFileCoverage(){
         skipDuplicates: true
       })
   }
+
+  await backFillCounts()
 }
 
 function parseFileCoverage(file_coverage: CoverallsFileCoverage[]):FileCoverage[] {
@@ -34,13 +32,7 @@ function parseFileCoverage(file_coverage: CoverallsFileCoverage[]):FileCoverage[
   })
 }
 
-function sortFileCoverage(mapped_file_coverage:FileCoverage[]) {
-  return mapped_file_coverage.sort((a, b) => {
-    return a.file.toLowerCase().localeCompare(b.file.toLowerCase())
-  })
-}
-
-async function updateFileCoverage() {
+async function backFillCounts() {
   const uncoveredLines = await db.uncoveredLines.groupBy({
     by: ['file_ref'],
       _count: {
