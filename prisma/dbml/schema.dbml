@@ -17,13 +17,14 @@ Table Build {
   commit_sha String [pk]
   repo_name String [not null]
   badge_url String [not null]
-  available Boolean [default: true]
+  available Boolean [not null, default: true]
   coverage_change Float [not null]
   covered_percent Float [not null]
+  UncoveredFiles UncoveredFiles [not null]
   UncoveredLines UncoveredLines [not null]
 }
 
-Table UncoveredLines {
+Table UncoveredFiles {
   id Int [pk, increment]
   lines_uncovered Int [not null]
   coverage Float [not null]
@@ -35,6 +36,20 @@ Table UncoveredLines {
 
   indexes {
     (build_ref, file_ref) [unique]
+  }
+}
+
+Table UncoveredLines {
+  id Int [pk, increment]
+  line_number Int [not null]
+  line_text String [not null]
+  file_ref String [not null]
+  build_ref String [not null]
+  build Build [not null]
+  file FileCoverage [not null]
+
+  indexes {
+    (line_number, line_text) [unique]
   }
 }
 
@@ -55,8 +70,13 @@ Table FileCoverage {
   times_coverage_changed Int [not null]
   current_coverage Float [not null]
   LineCoverage LineCoverage [not null]
+  UncoveredFiles UncoveredFiles [not null]
   UncoveredLines UncoveredLines [not null]
 }
+
+Ref: UncoveredFiles.build_ref > Build.commit_sha
+
+Ref: UncoveredFiles.file_ref > FileCoverage.file
 
 Ref: UncoveredLines.build_ref > Build.commit_sha
 

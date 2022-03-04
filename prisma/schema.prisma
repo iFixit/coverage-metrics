@@ -2,7 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["interactiveTransactions"]
 }
 
 generator dbml {
@@ -31,11 +32,12 @@ model Build {
   coverage_change Float
   covered_percent Float
 
+  UncoveredFiles UncoveredFiles[]
   UncoveredLines UncoveredLines[]
   @@map("builds")
 }
 
-model UncoveredLines {
+model UncoveredFiles {
   id              Int          @id @default(autoincrement())
   lines_uncovered Int
   coverage        Float
@@ -47,7 +49,20 @@ model UncoveredLines {
 
 
   @@unique([build_ref, file_ref])
-  @@map("unconvered_lines")
+  @@map("uncovered_files")
+}
+
+model UncoveredLines {
+  id          Int          @id @default(autoincrement())
+  line_number Int
+  line_text   String       @db.VarChar(255)
+  file_ref    String       @db.VarChar(255)
+  build_ref   String       @db.VarChar(255)
+  build       Build        @relation(fields: [build_ref], references: [commit_sha])
+  file        FileCoverage @relation(fields: [file_ref], references: [file])
+
+  @@unique([line_number, line_text])
+  @@map("uncovered_lines")
 }
 
 model LineCoverage {
@@ -67,6 +82,7 @@ model FileCoverage {
   current_coverage       Float
 
   LineCoverage   LineCoverage[]
+  UncoveredFiles UncoveredFiles[]
   UncoveredLines UncoveredLines[]
   @@map("file_coverage")
 }
