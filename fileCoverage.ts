@@ -33,7 +33,7 @@ function parseFileCoverage(file_coverage: CoverallsFileCoverage[]):FileCoverage[
     return {
       file: file.name,
       times_coverage_changed: 0,
-      current_coverage: file.covered_percent
+      current_coverage: parseFloat(file.covered_percent.toFixed(2))
     }
   })
 }
