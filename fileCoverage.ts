@@ -7,7 +7,7 @@ import fs from "fs"
 
 const coveralls = new CoverallsAPIClient();
 
-(async () => {
+async function populateFileCoverage(){
   const master_build = await coveralls.getFirstMasterBuild()
   const source_file_coverage: CoverallsFileCoverage[] = await coveralls.getAllSourceFilesCoverage(master_build.commit_sha)
 
@@ -17,16 +17,12 @@ const coveralls = new CoverallsAPIClient();
   fs.writeFileSync('./files.json',JSON.stringify(sorted_file_coverage))
   const BATCH_SIZE: number = 200
   for (let batch = 0; batch <= mapped_file_coverage.length; batch += BATCH_SIZE) {
-    console.log('Current Batch is %d', (batch / BATCH_SIZE + 1))
-
-    console.log('Will save the following')
-    console.log(mapped_file_coverage.slice(batch, batch? batch + BATCH_SIZE: BATCH_SIZE))
     await db.fileCoverage.createMany({
         data: mapped_file_coverage.slice(batch, batch? batch + BATCH_SIZE: BATCH_SIZE),
         skipDuplicates: true
       })
   }
-})()
+}
 
 function parseFileCoverage(file_coverage: CoverallsFileCoverage[]):FileCoverage[] {
   return file_coverage.map((file:CoverallsFileCoverage) => {
@@ -42,4 +38,24 @@ function sortFileCoverage(mapped_file_coverage:FileCoverage[]) {
   return mapped_file_coverage.sort((a, b) => {
     return a.file.toLowerCase().localeCompare(b.file.toLowerCase())
   })
+}
+
+async function updateFileCoverage() {
+  const uncoveredLines = await db.uncoveredLines.groupBy({
+    by: ['file_ref'],
+      _count: {
+      file_ref: true
+    }
+  })
+
+  for (let file of uncoveredLines) {
+    await db.fileCoverage.update({
+      where: {
+        file: file.file_ref
+      },
+      data: {
+        times_coverage_changed: file._count.file_ref
+      }
+    })
+  }
 }
