@@ -17,6 +17,7 @@ Table Build {
   commit_sha String [pk]
   repo_name String [not null]
   badge_url String [not null]
+  available Boolean [default: true]
   coverage_change Float [not null]
   covered_percent Float [not null]
   UncoveredLines UncoveredLines [not null]

@@ -27,6 +27,7 @@ model Build {
   commit_sha      String  @id @db.VarChar(255)
   repo_name       String  @db.VarChar(255)
   badge_url       String  @db.VarChar(255)
+  available       Boolean @default(true)
   coverage_change Float
   covered_percent Float
 
