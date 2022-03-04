@@ -35,14 +35,37 @@ model Build {
 }
 
 model UncoveredLines {
-  id              Int    @id @default(autoincrement())
+  id              Int          @id @default(autoincrement())
   lines_uncovered Int
   coverage        Float
   delta           Float
-  file            String @db.VarChar(255)
-  build_ref       String @db.VarChar(255)
-  build           Build  @relation(fields: [build_ref], references: [commit_sha])
+  file_ref        String       @db.VarChar(255)
+  build_ref       String       @db.VarChar(255)
+  build           Build        @relation(fields: [build_ref], references: [commit_sha])
+  file            FileCoverage @relation(fields: [file_ref], references: [file])
 
-  @@unique([build_ref, file])
+
+  @@unique([build_ref, file_ref])
   @@map("unconvered_lines")
+}
+
+model LineCoverage {
+  line_number     Int
+  line_text       String       @db.VarChar(255)
+  times_uncovered Int
+  file_ref        String       @db.VarChar(255)
+  file            FileCoverage @relation(fields: [file_ref], references: [file])
+
+  @@id([line_number, line_text])
+  @@map("line_coverage")
+}
+
+model FileCoverage {
+  file                   String @id @db.VarChar(255)
+  times_coverage_changed Int
+  current_coverage       Float
+
+  LineCoverage   LineCoverage[]
+  UncoveredLines UncoveredLines[]
+  @@map("file_coverage")
 }

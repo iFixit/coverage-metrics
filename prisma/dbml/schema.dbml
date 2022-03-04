@@ -27,13 +27,38 @@ Table UncoveredLines {
   lines_uncovered Int [not null]
   coverage Float [not null]
   delta Float [not null]
-  file String [not null]
+  file_ref String [not null]
   build_ref String [not null]
   build Build [not null]
+  file FileCoverage [not null]
 
   indexes {
-    (build_ref, file) [unique]
+    (build_ref, file_ref) [unique]
   }
 }
 
+Table LineCoverage {
+  line_number Int [not null]
+  line_text String [not null]
+  times_uncovered Int [not null]
+  file_ref String [not null]
+  file FileCoverage [not null]
+
+  indexes {
+    (line_number, line_text) [pk]
+  }
+}
+
+Table FileCoverage {
+  file String [pk]
+  times_coverage_changed Int [not null]
+  current_coverage Float [not null]
+  LineCoverage LineCoverage [not null]
+  UncoveredLines UncoveredLines [not null]
+}
+
 Ref: UncoveredLines.build_ref > Build.commit_sha
+
+Ref: UncoveredLines.file_ref > FileCoverage.file
+
+Ref: LineCoverage.file_ref > FileCoverage.file
