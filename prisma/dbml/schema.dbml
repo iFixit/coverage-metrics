@@ -20,11 +20,11 @@ Table Build {
   available Boolean [not null, default: true]
   coverage_change Float [not null]
   covered_percent Float [not null]
-  UncoveredFiles UncoveredFiles [not null]
-  UncoveredLines UncoveredLines [not null]
+  UncoveredFile UncoveredFile [not null]
+  UncoveredLine UncoveredLine [not null]
 }
 
-Table UncoveredFiles {
+Table UncoveredFile {
   id Int [pk, increment]
   lines_uncovered Int [not null]
   coverage Float [not null]
@@ -39,7 +39,7 @@ Table UncoveredFiles {
   }
 }
 
-Table UncoveredLines {
+Table UncoveredLine {
   id Int [pk, increment]
   line_number Int [not null]
   line_text String [not null]
@@ -58,6 +58,7 @@ Table LineCoverage {
   line_text String [not null]
   times_uncovered Int [not null]
   file_ref String [not null]
+  coverage_url String
   file FileCoverage [not null]
 
   indexes {
@@ -69,17 +70,18 @@ Table FileCoverage {
   file String [pk]
   times_coverage_changed Int [not null]
   current_coverage Float [not null]
+  coverage_url String
   LineCoverage LineCoverage [not null]
-  UncoveredFiles UncoveredFiles [not null]
-  UncoveredLines UncoveredLines [not null]
+  UncoveredFile UncoveredFile [not null]
+  UncoveredLine UncoveredLine [not null]
 }
 
-Ref: UncoveredFiles.build_ref > Build.commit_sha
+Ref: UncoveredFile.build_ref > Build.commit_sha
 
-Ref: UncoveredFiles.file_ref > FileCoverage.file
+Ref: UncoveredFile.file_ref > FileCoverage.file
 
-Ref: UncoveredLines.build_ref > Build.commit_sha
+Ref: UncoveredLine.build_ref > Build.commit_sha
 
-Ref: UncoveredLines.file_ref > FileCoverage.file
+Ref: UncoveredLine.file_ref > FileCoverage.file
 
 Ref: LineCoverage.file_ref > FileCoverage.file

@@ -32,12 +32,12 @@ model Build {
   coverage_change Float
   covered_percent Float
 
-  UncoveredFiles UncoveredFiles[]
-  UncoveredLines UncoveredLines[]
+  UncoveredFile UncoveredFile[]
+  UncoveredLine UncoveredLine[]
   @@map("builds")
 }
 
-model UncoveredFiles {
+model UncoveredFile {
   id              Int          @id @default(autoincrement())
   lines_uncovered Int
   coverage        Float
@@ -52,7 +52,7 @@ model UncoveredFiles {
   @@map("uncovered_files")
 }
 
-model UncoveredLines {
+model UncoveredLine {
   id          Int          @id @default(autoincrement())
   line_number Int
   line_text   String       @db.VarChar(255)
@@ -70,6 +70,7 @@ model LineCoverage {
   line_text       String       @db.VarChar(255)
   times_uncovered Int
   file_ref        String       @db.VarChar(255)
+  coverage_url    String?      @db.VarChar(255)
   file            FileCoverage @relation(fields: [file_ref], references: [file])
 
   @@id([line_number, line_text])
@@ -77,12 +78,13 @@ model LineCoverage {
 }
 
 model FileCoverage {
-  file                   String @id @db.VarChar(255)
+  file                   String  @id @db.VarChar(255)
   times_coverage_changed Int
   current_coverage       Float
+  coverage_url           String? @db.VarChar(255)
 
-  LineCoverage   LineCoverage[]
-  UncoveredFiles UncoveredFiles[]
-  UncoveredLines UncoveredLines[]
+  LineCoverage  LineCoverage[]
+  UncoveredFile UncoveredFile[]
+  UncoveredLine UncoveredLine[]
   @@map("file_coverage")
 }
