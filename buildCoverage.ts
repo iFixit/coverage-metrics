@@ -4,8 +4,9 @@ import db from "./prisma/dbClient"
 import { CoverallsBuild } from "./types"
 const coveralls = new CoverallsAPIClient()
 
-const NUMBER_OF_BUILDS=100
-async function populateBuilds(){
+const NUMBER_OF_BUILDS = 100
+
+export async function populateBuilds(){
   const non_master_builds = await coveralls.getNBuilds(NUMBER_OF_BUILDS)
   const mapped_builds = parseBuildList(non_master_builds)
 
@@ -24,5 +25,3 @@ function parseBuildList(builds: CoverallsBuild[]): Build[] {
     }
   })
 }
-
-populateBuilds()

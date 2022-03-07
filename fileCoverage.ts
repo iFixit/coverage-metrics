@@ -5,7 +5,7 @@ import db from "./prisma/dbClient"
 
 const coveralls = new CoverallsAPIClient();
 
-async function populateFileCoverage(){
+export async function populateFileCoverage(){
   const master_build = await coveralls.getFirstMasterBuild()
   const source_file_coverage: CoverallsFileCoverage[] = await coveralls.getAllSourceFilesCoverage(master_build.commit_sha)
 
@@ -18,8 +18,6 @@ async function populateFileCoverage(){
         skipDuplicates: true
       })
   }
-
-  await backFillCounts()
 }
 
 function parseFileCoverage(file_coverage: CoverallsFileCoverage[]):FileCoverage[] {
@@ -27,13 +25,29 @@ function parseFileCoverage(file_coverage: CoverallsFileCoverage[]):FileCoverage[
     return {
       file: file.name,
       times_coverage_changed: 0,
-      current_coverage: parseFloat(file.covered_percent.toFixed(2))
+      current_coverage: parseFloat(file.covered_percent.toFixed(2)),
+      coverage_url: `https://www.ubreakit.com/Misc/coverage-log/current/${file.name}.html`
     }
   })
 }
 
-async function backFillCounts() {
-  const uncoveredLines = await db.uncoveredLines.groupBy({
+export async function appendCoverageURL() {
+  const files = await db.fileCoverage.findMany()
+
+  for (let file of files) {
+    await db.fileCoverage.update({
+      where: {
+        file: file.file
+      },
+      data: {
+        coverage_url: `https://www.ubreakit.com/Misc/coverage-log/current/${file.file}.html`
+      }
+    })
+  }
+}
+
+export async function backFillFileCoverageCounts() {
+  const uncoveredLines = await db.uncoveredFile.groupBy({
     by: ['file_ref'],
       _count: {
       file_ref: true

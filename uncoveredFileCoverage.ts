@@ -1,15 +1,15 @@
 import { Build } from "@prisma/client";
 import CoverallsAPIClient from "./coveralls_api"
 import db from "./prisma/dbClient"
-import { scrapeUncoveredFiles, scrapeUncoveredLines } from "./scraper";
+import { scrapeUncoveredFiles } from "./scraper";
 
 const coveralls = new CoverallsAPIClient()
 
-async function populateUncoveredLines() {
+export async function populateUncoveredFiles() {
   const builds = await db.build.findMany({ where: { available: true } })
   const coverage_files = await getCoverageFilesForBuilds(builds);
 
-  await db.uncoveredLines.createMany({
+  await db.uncoveredFile.createMany({
     data: coverage_files,
     skipDuplicates: true
   })
@@ -18,7 +18,8 @@ async function populateUncoveredLines() {
 async function getCoverageFilesForBuilds(builds: Build[]): Promise<any[]> {
   const coverage_files: any[] = [];
 
-  for(let build of builds) {
+  for (let build of builds) {
+    console.log('Getting Files for Build ' + build.commit_sha)
     const build_page = await coveralls.getBuildPageByCommitSHA(build.commit_sha).catch(async error => {
       await db.build.update({
         where: {
@@ -40,5 +41,3 @@ async function getCoverageFilesForBuilds(builds: Build[]): Promise<any[]> {
 
   return coverage_files
 }
-
-populateUncoveredLines()
