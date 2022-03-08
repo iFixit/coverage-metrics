@@ -19,7 +19,7 @@ Table Build {
   badge_url String [not null]
   available Boolean [not null, default: true]
   coverage_change Float [not null]
-  covered_percent Float [not null]
+  covered_percent Float
   UncoveredFile UncoveredFile [not null]
   UncoveredLine UncoveredLine [not null]
 }
