@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+import multibar from "./progressBar"
+
 declare module 'axios' {
   interface AxiosResponse<T = any> extends Promise<T> {}
 }
@@ -38,12 +40,19 @@ export default class CoverallsAPIClient {
 
   // Will only get non-master builds
   public async getNBuilds(count: number): Promise<CoverallsBuild[]> {
+    const getBuildsBar = multibar.create(count, 0, {
+      action: 'Getting Builds'
+    })
+
     let builds: CoverallsBuild[] = []
     for (let current_page = 1; builds.length < count; current_page++){
       const response = await this.getBuildsFromPage(current_page)
       const filtered_builds = this.filterNonMasterBuilds(response.builds)
       builds = builds.concat(filtered_builds)
+      getBuildsBar.update(builds.length)
     }
+
+    getBuildsBar.stop()
     return builds
   }
 
@@ -77,11 +86,16 @@ export default class CoverallsAPIClient {
     const response = await this.getSourceFilesCoverageAtPage(commit_sha,1)
     source_file_coverage = source_file_coverage.concat(JSON.parse(response.source_files))
     const total_pages = response.total_pages
+    const fileCoverageBar = multibar.create(total_pages, 1, {
+      action: 'Getting Source Files'
+    })
 
     for (let current_page = 2; current_page <= total_pages; current_page++){
       const response = await this.getSourceFilesCoverageAtPage(commit_sha,current_page)
       source_file_coverage = source_file_coverage.concat(JSON.parse(response.source_files))
+      fileCoverageBar.update(current_page)
     }
+    fileCoverageBar.stop()
     return source_file_coverage
   }
 

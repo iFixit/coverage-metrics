@@ -1,7 +1,10 @@
+import { PromisePool } from "@supercharge/promise-pool"
 import { LineCoverage, UncoveredLine } from "@prisma/client";
 import db from "./prisma/dbClient"
 
 const MAX_LINE_DIFFERENCE = 5
+
+import multibar from "./progressBar"
 
 export async function populateLineCoverage() {
   const lineCoverage = await db.uncoveredLine.findMany({where: {
@@ -11,15 +14,38 @@ export async function populateLineCoverage() {
   }})
   const backFilledLineCoverage = backFillCounts(lineCoverage);
 
-  await db.lineCoverage.createMany({
-    data: backFilledLineCoverage,
-    skipDuplicates: true
+  return saveLineCoverage(backFilledLineCoverage)
+}
+
+
+async function saveLineCoverage(lineCoverage: LineCoverage[]) {
+  const lineCoverageSaveBar = multibar.create(lineCoverage.length, 0, {
+    action: 'Saving Line Coverage'
+  })
+
+  return PromisePool.for(lineCoverage).process(async line => {
+    const result = await db.lineCoverage.upsert({
+      where: {
+        line_number_line_text: {
+          line_number: line.line_number,
+          line_text: line.line_text
+        }
+      },
+      update: line,
+      create: line
+    })
+
+    lineCoverageSaveBar.increment()
+    return result
   })
 }
 
 function backFillCounts(lineCoverage: UncoveredLine[]){
   const lineCoverageByFile = lineCoverage.reduce(reduceByFile, {})
   const updateLineCoverage: LineCoverage[] = []
+  const backFillLineCoverageCountsBar = multibar.create(lineCoverage.length,0,{
+    action: "Backfilling Line Coverage Counts"
+  })
 
   for (let file in lineCoverageByFile) {
     const backFilledCounts = new Map()
@@ -58,7 +84,9 @@ function backFillCounts(lineCoverage: UncoveredLine[]){
           }
         )
       }
+      backFillLineCoverageCountsBar.increment()
     })
+
     updateLineCoverage.push(...backFilledCounts.values())
   }
   return updateLineCoverage
@@ -70,24 +98,6 @@ function reduceByFile(coverage_by_file: { [file_ref: string]: UncoveredLine[] },
   }
   coverage_by_file[lineCoverage.file_ref].push(lineCoverage)
   return coverage_by_file
-}
-
-async function appendCoverageURL() {
-  const lines = await db.lineCoverage.findMany()
-
-  for (let line of lines) {
-    await db.lineCoverage.update({
-      where: {
-        line_number_line_text: {
-          line_number: line.line_number,
-          line_text: line.line_text
-        }
-      },
-      data: {
-        coverage_url: `https://www.ubreakit.com/Misc/coverage-log/current/${line.file_ref}.html${line.line_number}`
-      }
-    })
-  }
 }
 
 function isLineNumberInCloseProximity(backedFilledLine: LineCoverage, new_line: UncoveredLine): boolean {

@@ -1,9 +1,12 @@
+import { PromisePool } from "@supercharge/promise-pool"
 import { UncoveredFile, UncoveredLine } from "@prisma/client";
-import CoverallsAPIClient from "./coveralls_api"
+import CoverallsAPIClient from "./coverallsAPI"
 import db from "./prisma/dbClient"
 import { scrapeUncoveredLines } from "./scraper";
 
 const coveralls = new CoverallsAPIClient()
+
+import multibar from "./progressBar"
 
 export async function populateUncoveredLines() {
  const uncoveredFiles = await db.uncoveredFile.findMany({
@@ -13,25 +16,43 @@ export async function populateUncoveredLines() {
       }
     }
  })
-
   const lineCoverage = await getUncoveredLinesFromFiles(uncoveredFiles)
-
-  await db.uncoveredLine.createMany({
-    data: lineCoverage,
-    skipDuplicates: true
-  })
+  return saveParsedUncoveredLines(lineCoverage)
 }
 
 
 async function getUncoveredLinesFromFiles(uncoveredFiles: UncoveredFile[]) {
   const lineCoverage: UncoveredLine[] = []
-  for (let file of uncoveredFiles) {
-    console.log('Getting Lines for File: ' + file.file_ref)
+  const getUncoveredLinesBar = multibar.create(uncoveredFiles.length, 0, {
+    action: "Getting Uncovered Lines",
+  })
 
+  await PromisePool.for(uncoveredFiles).process(async file => {
     const coverage_page = await coveralls.getFileCoverage(file.build_ref, file.file_ref)
+    lineCoverage.push(...scrapeUncoveredLines(coverage_page, file))
+    getUncoveredLinesBar.increment()
+  })
 
-    const fileCoverage = scrapeUncoveredLines(coverage_page, file)
-    lineCoverage.push(...fileCoverage)
-  }
   return lineCoverage
+}
+
+async function saveParsedUncoveredLines(uncoveredLines: UncoveredLine[]) {
+    const uncoveredLinesSaveBar = multibar.create(uncoveredLines.length, 0, {
+    action: 'Saving Uncovered Lines'
+  })
+
+  return PromisePool.for(uncoveredLines).process(async uncoveredLine => {
+    const result =  await db.uncoveredLine.upsert({
+      where: {
+        line_number_line_text: {
+          line_number: uncoveredLine.line_number,
+          line_text: uncoveredLine.line_text
+        }
+      },
+      update: uncoveredLine,
+      create: uncoveredLine
+    })
+    uncoveredLinesSaveBar.increment()
+    return result
+  })
 }

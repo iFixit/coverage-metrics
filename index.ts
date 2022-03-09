@@ -4,16 +4,30 @@ import { populateLineCoverage } from "./lineCoverage";
 import { populateUncoveredFiles } from "./uncoveredFileCoverage";
 import { populateUncoveredLines } from "./uncoveredLineCoverage";
 
+import multibar from "./progressBar"
+
+const FIFTEEN_MINUTES = 15 * 60 * 1000;
 (async () => {
-  await populateBuilds()
-  await populateFileCoverage()
-  console.log("Populating Uncovered Files")
-  await populateUncoveredFiles()
-  console.log("Back Filling File Coverage Counts")
-  await backFillFileCoverageCounts()
-  await appendCoverageURL()
-  console.log("Populate Uncovered Lines")
-  await populateUncoveredLines()
-  console.log("Populate Line Coverage")
-  await populateLineCoverage()
+  await main()
+  setInterval(main, FIFTEEN_MINUTES)
 })();
+
+async function main() {
+  console.log('\n================================Starting Population================================\n')
+
+  await populateBuilds()
+
+  await populateFileCoverage()
+
+  await populateUncoveredFiles()
+
+  await backFillFileCoverageCounts()
+
+  await appendCoverageURL()
+
+  await populateUncoveredLines()
+
+  await populateLineCoverage()
+
+  console.log('\n================================Finished Populating================================\n')
+}
