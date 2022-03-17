@@ -23,7 +23,7 @@ async function saveLineCoverage(lineCoverage: LineCoverage[]) {
     action: 'Saving Line Coverage'
   })
 
-  return PromisePool.for(lineCoverage).process(async line => {
+  return PromisePool.for(lineCoverage).withConcurrency(20).process(async line => {
     const result = await db.lineCoverage.upsert({
       where: {
         line_number_line_text: {

@@ -20,7 +20,7 @@ async function getCoverageFilesForBuilds(builds: Build[]){
     action: "Getting Coverage Files for Each Build"
   })
 
-  await PromisePool.for(builds).withConcurrency(20).process(async build => {
+  await PromisePool.for(builds).process(async build => {
     const build_page = await coveralls.getBuildPageByCommitSHA(build.commit_sha).catch(async error => {
         await db.build.update({
           where: {

@@ -27,7 +27,7 @@ async function getUncoveredLinesFromFiles(uncoveredFiles: UncoveredFile[]) {
     action: "Getting Uncovered Lines",
   })
 
-  await PromisePool.for(uncoveredFiles).process(async file => {
+  await PromisePool.for(uncoveredFiles).withConcurrency(5).process(async file => {
     const coverage_page = await coveralls.getFileCoverage(file.build_ref, file.file_ref)
     lineCoverage.push(...scrapeUncoveredLines(coverage_page, file))
     getUncoveredLinesBar.increment()
