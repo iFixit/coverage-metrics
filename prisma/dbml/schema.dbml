@@ -76,12 +76,12 @@ Table FileCoverage {
   UncoveredLine UncoveredLine [not null]
 }
 
-Ref: UncoveredFile.build_ref > Build.commit_sha
+Ref: UncoveredFile.build_ref > Build.commit_sha [delete: Cascade]
 
-Ref: UncoveredFile.file_ref > FileCoverage.file
+Ref: UncoveredFile.file_ref > FileCoverage.file [delete: Cascade]
 
-Ref: UncoveredLine.build_ref > Build.commit_sha
+Ref: UncoveredLine.build_ref > Build.commit_sha [delete: Cascade]
 
-Ref: UncoveredLine.file_ref > FileCoverage.file
+Ref: UncoveredLine.file_ref > FileCoverage.file [delete: Cascade]
 
-Ref: LineCoverage.file_ref > FileCoverage.file
+Ref: LineCoverage.file_ref > FileCoverage.file [delete: Cascade]

@@ -44,9 +44,8 @@ model UncoveredFile {
   delta           Float
   file_ref        String       @db.VarChar(255)
   build_ref       String       @db.VarChar(255)
-  build           Build        @relation(fields: [build_ref], references: [commit_sha])
-  file            FileCoverage @relation(fields: [file_ref], references: [file])
-
+  build           Build        @relation(fields: [build_ref], references: [commit_sha], onDelete: Cascade, onUpdate: NoAction)
+  file            FileCoverage @relation(fields: [file_ref], references: [file], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([build_ref, file_ref])
   @@map("uncovered_files")
@@ -58,8 +57,8 @@ model UncoveredLine {
   line_text   String       @db.VarChar(255)
   file_ref    String       @db.VarChar(255)
   build_ref   String       @db.VarChar(255)
-  build       Build        @relation(fields: [build_ref], references: [commit_sha])
-  file        FileCoverage @relation(fields: [file_ref], references: [file])
+  build       Build        @relation(fields: [build_ref], references: [commit_sha], onDelete: Cascade, onUpdate: NoAction)
+  file        FileCoverage @relation(fields: [file_ref], references: [file], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([line_number, line_text, file_ref, build_ref])
   @@map("uncovered_lines")
@@ -71,7 +70,7 @@ model LineCoverage {
   times_uncovered Int
   file_ref        String       @db.VarChar(255)
   coverage_url    String?      @db.VarChar(255)
-  file            FileCoverage @relation(fields: [file_ref], references: [file])
+  file            FileCoverage @relation(fields: [file_ref], references: [file], onDelete: Cascade, onUpdate: NoAction)
 
   @@id([line_number, line_text])
   @@map("line_coverage")
