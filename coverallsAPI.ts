@@ -17,7 +17,7 @@ export default class CoverallsAPIClient {
   public constructor() {
     this.instance = axios.create({
       baseURL: this.baseURL,
-      timeout: 5000 // Timeout quickly since some pages no longer exist
+      timeout: 10000 // Timeout since some pages no longer exist which will stall the script
     });
 
     this._initializeResponseInterceptor();
