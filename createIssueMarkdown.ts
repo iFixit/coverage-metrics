@@ -25,6 +25,8 @@ const subIssuePath = (issueName:string) => {
     const subIssueMD = subIssueTemplate(file.file, linesMD)
     fs.writeFileSync(subIssuePath (file.file), subIssueMD)
   }
+
+  console.log('Done Generating Issue Markdown Files')
 })()
 
 
