@@ -7,7 +7,7 @@ const coveralls = new CoverallsAPIClient()
 import multibar from './progressBar'
 import { PromisePool } from "@supercharge/promise-pool"
 
-const NUMBER_OF_BUILDS = 100
+const NUMBER_OF_BUILDS = 30
 
 export async function populateBuilds() {
   const non_master_builds = await coveralls.getNBuilds(NUMBER_OF_BUILDS)
