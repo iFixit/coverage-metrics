@@ -4,12 +4,10 @@ import { populateLineCoverage } from "./lineCoverage";
 import { populateUncoveredFiles } from "./uncoveredFileCoverage";
 import { populateUncoveredLines } from "./uncoveredLineCoverage";
 
-import multibar from "./progressBar"
-
 const FIFTEEN_MINUTES = 15 * 60 * 1000;
 (async () => {
   await main()
-  setInterval(main, FIFTEEN_MINUTES)
+  // setInterval(main, FIFTEEN_MINUTES)
 })();
 
 async function main() {
