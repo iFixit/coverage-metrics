@@ -49,7 +49,7 @@ Table UncoveredLine {
   file FileCoverage [not null]
 
   indexes {
-    (line_number, line_text) [unique]
+    (line_number, line_text, file_ref, build_ref) [unique]
   }
 }
 

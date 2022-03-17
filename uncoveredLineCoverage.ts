@@ -44,9 +44,11 @@ async function saveParsedUncoveredLines(uncoveredLines: UncoveredLine[]) {
   return PromisePool.for(uncoveredLines).process(async uncoveredLine => {
     const result =  await db.uncoveredLine.upsert({
       where: {
-        line_number_line_text: {
+        line_number_line_text_file_ref_build_ref: {
           line_number: uncoveredLine.line_number,
-          line_text: uncoveredLine.line_text
+          line_text: uncoveredLine.line_text,
+          build_ref: uncoveredLine.build_ref,
+          file_ref: uncoveredLine.file_ref
         }
       },
       update: uncoveredLine,

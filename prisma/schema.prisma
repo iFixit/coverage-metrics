@@ -61,7 +61,7 @@ model UncoveredLine {
   build       Build        @relation(fields: [build_ref], references: [commit_sha])
   file        FileCoverage @relation(fields: [file_ref], references: [file])
 
-  @@unique([line_number, line_text])
+  @@unique([line_number, line_text, file_ref, build_ref])
   @@map("uncovered_lines")
 }
 
