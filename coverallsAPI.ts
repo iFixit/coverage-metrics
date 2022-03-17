@@ -64,14 +64,13 @@ export default class CoverallsAPIClient {
     return this.instance.get(`builds/${commit_sha}/source`,{ params: { repo_token: process.env.COVERALLS_REPO_TOKEN, filename: file_path} })
   }
 
-  // We can probably atttach a webhook later to automatically retrieve the latest build for master
-
-  // Actually need to get the second master build since the first one may still be pending
+  // We can probably attach a webhook later to automatically retrieve the latest build for master
   public async getFirstMasterBuild() {
     let first_build_found = false
     for (let current_page = 1; ; current_page++) {
       const response = await this.getBuildsFromPage(current_page)
       const master_build = response.builds.find(build => build.branch === 'master')
+      // Actually need to get the second master build since the first one may still be pending
       if (master_build && first_build_found) {
         return master_build
       }

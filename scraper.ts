@@ -6,7 +6,7 @@ export function scrapeUncoveredFiles(build_page: string,build_commit_sha:string)
   const $ = cheerio.load(build_page)
   const coverage_files:any[] = []
   $('.missed-lines > h4:contains("Uncovered Existing Lines")').parent().find('tr').get().map((row, index) => {
-  // Table doesn't have a thead element so it will be the first row
+  // Table doesn't have a thead element so it will be the first row or index 0
     if (index) {
       coverage_files.push({
         lines_uncovered: parseInt($(row).find('td:nth-child(1)').text().replace(/\n/g, "")),
@@ -36,11 +36,3 @@ export function scrapeUncoveredLines(file_page: string,file: UncoveredFile): Unc
 
   return coverage_lines
 }
-
-// Get the Line Number for the coverage
-//  $('.line-uncov').get().map(line => {
-//     console.log($(line).siblings('a:first').text())
-//   })
-
-// Get the line code for the coverage
-// console.log($(line).parent('.num').siblings('td.src').find('pre').text().trimStart())
