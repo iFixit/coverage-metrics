@@ -42,10 +42,7 @@ async function saveParsedBuildList(builds: Build[]) {
       where: {
         commit_sha: build.commit_sha
       },
-      update: {
-        coverage_change: build.coverage_change,
-        covered_percent: build.covered_percent
-      },
+      update: build,
       create: build
     })
     buildSaveBar.increment()
