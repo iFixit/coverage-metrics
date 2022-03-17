@@ -67,7 +67,8 @@ async function getFlakyLinesOfFile(file_name: string) {
     },
     orderBy: {
       times_uncovered: 'desc'
-    }
+    },
+    take: 5
   })
 }
 
