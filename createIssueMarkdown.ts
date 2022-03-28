@@ -38,6 +38,13 @@ async function getTopNFlakyFiles(limit: number){
       current_coverage: true,
       coverage_url: true
     },
+    where: {
+      NOT: {
+        file: {
+          contains: 'UI/'
+        }
+      }
+    },
     orderBy: {
       times_coverage_changed: 'desc'
     },
